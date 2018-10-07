@@ -11,7 +11,7 @@ package com.tuantv.migrationstf.service.base;
  */
 public interface FileService {
     
-    void migrationUploadTime();
+    int getNumberFile();
     
-    long getNumberFile();
+    void updateUploadTimeByFileId(int skip, int take);
 }

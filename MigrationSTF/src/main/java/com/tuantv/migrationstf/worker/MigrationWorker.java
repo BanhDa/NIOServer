@@ -6,6 +6,8 @@
 package com.tuantv.migrationstf.worker;
 
 import com.tuantv.migrationstf.service.base.FileService;
+import com.tuantv.migrationstf.domain.FileInfo;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,12 +22,12 @@ import lombok.EqualsAndHashCode;
 public class MigrationWorker extends Thread{
     
     private final FileService fileService;
-    private final long skip;
-    private final long take;
+    private final int skip;
+    private final int take;
 
     @Override
     public void run() {
-        
+        fileService.updateUploadTimeByFileId(skip, take);
     }
     
 }

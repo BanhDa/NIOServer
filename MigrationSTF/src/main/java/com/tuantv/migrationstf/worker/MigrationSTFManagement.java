@@ -14,13 +14,13 @@ import com.tuantv.util.exception.ApplicationException;
  */
 public class MigrationSTFManagement {
     
-    private static MigrationSTFManagement INSTANCE = new MigrationSTFManagement();
+    private static final MigrationSTFManagement INSTANCE = new MigrationSTFManagement();
     private static final int MAX_MIGRATION_THREAD_DEFAULT = 10;
     private static final int MIGRATED_FILE_NUMBER_PER_THREAD_DEFAULT = 1000;
     
-    private static long FILE_NUMBER;
+    private static int FILE_NUMBER;
     private static int MIGRATED_FILE_COUNTER;
-    private static long MIGRATING_FILE_NUMBER;
+    private static int MIGRATING_FILE_NUMBER;
     
     private static int MIGRATION_THREAD_COUNTER;
     private static int MAX_MIGRATION_THREAD = MAX_MIGRATION_THREAD_DEFAULT;
@@ -58,7 +58,7 @@ public class MigrationSTFManagement {
             throw new ApplicationException("The FileService is not initial");
         }
         
-        long fileNumber = fileService.getNumberFile();
+        int fileNumber = fileService.getNumberFile();
         FILE_NUMBER = fileNumber;
         
         if (fileNumber <= MIGRATED_FILE_NUMBER_PER_THREAD) {

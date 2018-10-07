@@ -21,4 +21,13 @@ public class FileInfo extends Domain{
     private String url;
     
     private Long uploadTime;
+    
+    public FileInfo() {}
+    
+    public FileInfo(FileInfo fileInfo) {
+        setId( fileInfo.getId() );
+        this.userId = fileInfo.getUserId();
+        this.url = fileInfo.getUrl();
+        this.uploadTime = fileInfo.getUploadTime();
+    }
 }

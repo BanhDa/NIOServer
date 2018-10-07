@@ -5,15 +5,19 @@
  */
 package com.tuantv.migrationstf.repository.implement;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.tuantv.migrationstf.domain.FileInfo;
 import org.springframework.stereotype.Repository;
 import com.tuantv.migrationstf.repository.base.BaseRepository;
 import com.tuantv.migrationstf.repository.base.FileRepository;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.bson.types.ObjectId;
 
 /**
  *
@@ -25,6 +29,9 @@ public class FileRepositoryImpl extends BaseRepository<FileInfo> implements File
 
     private static final String DATABASE_NAME = "staticfiledb";
     private static final String COLLECTION_NAME = "file";
+    
+    private static final String URL = "url";
+    private static final String UPLOAD_TIME = "upload_time";
     
     private final MongoClient mongoClient;
     
@@ -40,12 +47,36 @@ public class FileRepositoryImpl extends BaseRepository<FileInfo> implements File
 
     @Override
     protected FileInfo castToDomain(DBObject dbObject) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (dbObject == null) {
+            return null;
+        }
+        
+        FileInfo fileInfo = new FileInfo();
+        
+        ObjectId id = (ObjectId) dbObject.get(ID);
+        fileInfo.setId(id.toString());
+        
+        String url = (String) dbObject.get(URL);
+        fileInfo.setUrl(url);
+        
+        Long uploadTime = (Long) dbObject.get(UPLOAD_TIME);
+        fileInfo.setUploadTime(uploadTime);
+        
+        return fileInfo;
     }
 
     @Override
     protected DBObject castToDBObject(FileInfo domain) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        BasicDBObject dBObject = new BasicDBObject();
+        
+        if (domain.getId() != null) {
+            dBObject.append(ID, new ObjectId(domain.getId()));
+        }
+        
+        put(dBObject, URL, domain.getUrl());
+        put(dBObject, UPLOAD_TIME, domain.getUploadTime());
+        
+        return dBObject;
     }
 
     @Override
@@ -55,7 +86,33 @@ public class FileRepositoryImpl extends BaseRepository<FileInfo> implements File
 
     @Override
     public List<FileInfo> getFiles(int skip, int take) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        BasicDBObject sortById = new BasicDBObject(ID, 1);
+        
+        List<FileInfo> result = new ArrayList<>();
+        try (DBCursor cursor = getCollection().find().sort(sortById).skip(skip).limit(take)) {
+            while(cursor.hasNext()) {
+                BasicDBObject dBObject = (BasicDBObject) cursor.next();
+                FileInfo fileInfo = castToDomain(dBObject);
+                result.add(fileInfo);
+            }
+        }
+        
+        return result;
+    }
+
+    @Override
+    public long getFileNumber() {
+        return getCollection().count();
+    }
+
+    @Override
+    public void updateUploadTime(String fileId, long uploadTime) {
+        ObjectId id = new ObjectId(fileId);
+        BasicDBObject query = new BasicDBObject(ID, id);
+        
+        BasicDBObject update = new BasicDBObject("$set", new BasicDBObject(UPLOAD_TIME, uploadTime));
+        
+        getCollection().update(query, update);
     }
     
 }

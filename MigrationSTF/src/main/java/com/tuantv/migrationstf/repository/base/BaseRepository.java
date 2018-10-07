@@ -5,6 +5,7 @@
  */
 package com.tuantv.migrationstf.repository.base;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -17,6 +18,8 @@ import com.tuantv.migrationstf.domain.Domain;
  */
 public abstract class BaseRepository<T extends Domain>{
     
+    protected static final String ID = "_id";
+    
     protected DBCollection getCollection() {
         return getDB().getCollection(getCollectionName());
     }
@@ -28,4 +31,10 @@ public abstract class BaseRepository<T extends Domain>{
     protected abstract T castToDomain(DBObject dbObject);
     
     protected abstract DBObject castToDBObject(T domain);
+    
+    protected void put(BasicDBObject dBObject, String key, Object value) {
+        if (value != null) {
+            dBObject.append(key, value);
+        }
+    }
 }

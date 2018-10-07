@@ -17,4 +17,8 @@ public interface FileRepository {
     void insertMany(List<FileInfo> fileInfos);
     
     List<FileInfo> getFiles(int skip, int take);
+    
+    long getFileNumber();
+    
+    void updateUploadTime(String fileId, long uploadTime);
 }
