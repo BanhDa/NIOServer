@@ -6,8 +6,6 @@
 package com.tuantv.migrationstf.worker;
 
 import com.tuantv.migrationstf.service.base.FileService;
-import com.tuantv.migrationstf.domain.FileInfo;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,7 +25,12 @@ public class MigrationWorker extends Thread{
 
     @Override
     public void run() {
+        long startTime = System.currentTimeMillis();
+        int to = skip + take;
+        System.out.println("START MIGRATE DATA FROM " + skip + " to " + to);
         fileService.updateUploadTimeByFileId(skip, take);
+        System.out.println("migration skip " + skip + " to " + to + " completed: " + (System.currentTimeMillis() - startTime));
+        MigrationSTFManagement.getInstance().completeWorker(this);
     }
     
 }

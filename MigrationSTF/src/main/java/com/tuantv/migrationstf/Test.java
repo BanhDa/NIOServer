@@ -22,6 +22,6 @@ public class Test {
         fileInfo.setId("1");
 
         FileInfo file = new FileInfo(fileInfo);
-        System.out.println("file : " + file);
+        System.out.println("file : " + file.getId());
     }
 }

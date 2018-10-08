@@ -7,7 +7,7 @@ package com.tuantv.migrationstf.worker;
 
 import com.tuantv.migrationstf.service.base.FileService;
 import com.tuantv.migrationstf.config.Config;
-import com.tuantv.util.exception.ApplicationException;
+import com.tuantv.migrationstf.exception.ApplicationException;
 /**
  *
  * @author tuantran
@@ -25,8 +25,6 @@ public class MigrationSTFManagement {
     private static int MIGRATION_THREAD_COUNTER;
     private static int MAX_MIGRATION_THREAD = MAX_MIGRATION_THREAD_DEFAULT;
     private static int MIGRATED_FILE_NUMBER_PER_THREAD = MIGRATED_FILE_NUMBER_PER_THREAD_DEFAULT;
-    
-    
     
     public static MigrationSTFManagement getInstance() {
         return INSTANCE;
@@ -53,39 +51,42 @@ public class MigrationSTFManagement {
         }
     }
     
+    private synchronized void increaseMigratingFileNumber(int number) {
+        MIGRATING_FILE_NUMBER += number;
+    }
+    
     public void migrate() throws ApplicationException {
         if (fileService == null) {
             throw new ApplicationException("The FileService is not initial");
         }
         
-        int fileNumber = fileService.getNumberFile();
-        FILE_NUMBER = fileNumber;
+        FILE_NUMBER = fileService.getNumberFile();
         
-        if (fileNumber <= MIGRATED_FILE_NUMBER_PER_THREAD) {
-            new MigrationWorker(fileService, MIGRATING_FILE_NUMBER, fileNumber).start();
-            MIGRATING_FILE_NUMBER = fileNumber;
+        if (FILE_NUMBER <= MIGRATED_FILE_NUMBER_PER_THREAD) {
+            new MigrationWorker(fileService, MIGRATING_FILE_NUMBER, FILE_NUMBER).start();
+            increaseMigratingFileNumber(FILE_NUMBER);
         } else {
             long take = MIGRATING_FILE_NUMBER + MIGRATED_FILE_NUMBER_PER_THREAD;
             while (MIGRATION_THREAD_COUNTER < MAX_MIGRATION_THREAD
                     && take <= FILE_NUMBER) {
                 new MigrationWorker(fileService, MIGRATING_FILE_NUMBER, MIGRATED_FILE_NUMBER_PER_THREAD).start();
-                MIGRATING_FILE_NUMBER += MIGRATED_FILE_NUMBER_PER_THREAD;
+                increaseMigratingFileNumber(MIGRATED_FILE_NUMBER_PER_THREAD);
                 take += MIGRATED_FILE_NUMBER_PER_THREAD;
-                MIGRATION_THREAD_COUNTER++;
+                MIGRATION_THREAD_COUNTER += 1;
             }
             
             if (MIGRATION_THREAD_COUNTER < MAX_MIGRATION_THREAD
                     && take > FILE_NUMBER) {
                 new MigrationWorker(fileService, MIGRATING_FILE_NUMBER, FILE_NUMBER - MIGRATING_FILE_NUMBER).start();
-                MIGRATING_FILE_NUMBER = FILE_NUMBER;
-                MIGRATION_THREAD_COUNTER++;
+                increaseMigratingFileNumber(FILE_NUMBER - MIGRATING_FILE_NUMBER);
+                MIGRATION_THREAD_COUNTER += 1;
             }
         }
     }
     
     public synchronized void completeWorker(MigrationWorker worker) {
         MIGRATED_FILE_COUNTER += worker.getTake();
-        MIGRATION_THREAD_COUNTER--;
+        MIGRATION_THREAD_COUNTER -= 1;
         if (MIGRATED_FILE_COUNTER == FILE_NUMBER) {
             return;
         }
@@ -93,13 +94,17 @@ public class MigrationSTFManagement {
                     && MIGRATING_FILE_NUMBER < FILE_NUMBER) {
             if ( (MIGRATING_FILE_NUMBER + MIGRATED_FILE_NUMBER_PER_THREAD) > FILE_NUMBER) {
                 new MigrationWorker(fileService, MIGRATING_FILE_NUMBER, FILE_NUMBER - MIGRATING_FILE_NUMBER).start();
-                MIGRATING_FILE_NUMBER = FILE_NUMBER;
-                MIGRATION_THREAD_COUNTER++;
+                increaseMigratingFileNumber(FILE_NUMBER - MIGRATING_FILE_NUMBER);
+                MIGRATION_THREAD_COUNTER += 1;
             } else {
                 new MigrationWorker(fileService, MIGRATING_FILE_NUMBER, MIGRATED_FILE_NUMBER_PER_THREAD).start();
-                MIGRATING_FILE_NUMBER = FILE_NUMBER;
-                MIGRATION_THREAD_COUNTER++;
+                increaseMigratingFileNumber(MIGRATING_FILE_NUMBER);
+                MIGRATION_THREAD_COUNTER += 1;
             }
         }
+    }
+    
+    public boolean isComplete() {
+        return FILE_NUMBER == MIGRATED_FILE_COUNTER;
     }
 }

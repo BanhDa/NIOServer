@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.tuantv.migrationstf.worker.MigrationSTFManagement;
 import com.tuantv.migrationstf.service.base.FileService;
 import com.tuantv.migrationstf.config.Config;
+import com.tuantv.migrationstf.worker.MigrationChecker;
 import lombok.AllArgsConstructor;
 
 /**
@@ -30,11 +31,17 @@ public class Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+//        insertData();
         migrate();
     }
 
+    private void insertData() {
+        fileService.createFileData(config.getCreateFileDataNumber(), config.getDocumentNumberPerAnInsert());
+    }
+    
     private void migrate() {
         MigrationSTFManagement.getInstance().init(fileService, config);
         MigrationSTFManagement.getInstance().migrate();
+        new MigrationChecker().start();
     }
 }

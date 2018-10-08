@@ -22,4 +22,10 @@ public class Config {
     
     @Value("${application.migrateSTF.migratedFileNumberPerThread}")
     private int migratedFileNumberPerThread;
+    
+    @Value("${application.createFileDataNumber}")
+    private int createFileDataNumber;
+    
+    @Value("${application.documentNumberPerAnInsert}")
+    private int documentNumberPerAnInsert;
 }

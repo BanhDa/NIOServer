@@ -41,10 +41,10 @@ public class MongoConfig {
     private int connectionsPerHost;
 
     @Bean
-    private MongoClient getMongoClient() {
-        MongoCredential mongoCredential = MongoCredential.createCredential(userName, authenticationDatabase, password.toCharArray());
+    public MongoClient getMongoClient() {
+//        MongoCredential mongoCredential = MongoCredential.createCredential(userName, authenticationDatabase, password.toCharArray());
         MongoClientOptions mongoClientOptions = new MongoClientOptions.Builder().connectionsPerHost(connectionsPerHost).build();
-        MongoClient mongoClient = new MongoClient(new ServerAddress(host, port), mongoCredential, mongoClientOptions);
+        MongoClient mongoClient = new MongoClient(new ServerAddress(host, port), mongoClientOptions);
         
         return mongoClient;
     }

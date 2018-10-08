@@ -1,0 +1,18 @@
+## YAML Template.
+---
+application:
+    database:
+        mongo:
+            host: localhost
+            port: 27017
+            authenticationDatabase: admin
+            userName:
+            password:
+            connectionsPerHost: 10
+            
+    migrateSTF:
+        maxMigrationSTFThread: 5
+        migratedFileNumberPerThread: 1000
+        
+    createFileDataNumber: 9000000
+    documentNumberPerAnInsert: 1000

@@ -5,6 +5,7 @@
  */
 package com.tuantv.migrationstf.repository.implement;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCursor;
@@ -16,6 +17,7 @@ import com.tuantv.migrationstf.repository.base.BaseRepository;
 import com.tuantv.migrationstf.repository.base.FileRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.bson.types.ObjectId;
 
@@ -28,7 +30,7 @@ import org.bson.types.ObjectId;
 public class FileRepositoryImpl extends BaseRepository<FileInfo> implements FileRepository {
 
     private static final String DATABASE_NAME = "staticfiledb";
-    private static final String COLLECTION_NAME = "file";
+    private static final String COLLECTION_NAME = "dbtest";
     
     private static final String URL = "url";
     private static final String UPLOAD_TIME = "upload_time";
@@ -81,7 +83,11 @@ public class FileRepositoryImpl extends BaseRepository<FileInfo> implements File
 
     @Override
     public void insertMany(List<FileInfo> fileInfos) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        List<DBObject> dbList = fileInfos.parallelStream().map(fileInfo -> {
+            return castToDBObject(fileInfo);
+        }).collect(Collectors.toList());
+        
+        getCollection().insert(dbList);
     }
 
     @Override
