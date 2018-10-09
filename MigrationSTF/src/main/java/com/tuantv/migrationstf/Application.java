@@ -11,7 +11,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.tuantv.migrationstf.worker.MigrationSTFManagement;
 import com.tuantv.migrationstf.service.base.FileService;
 import com.tuantv.migrationstf.config.Config;
-import com.tuantv.migrationstf.worker.MigrationChecker;
 import lombok.AllArgsConstructor;
 
 /**
@@ -42,6 +41,5 @@ public class Application implements CommandLineRunner {
     private void migrate() {
         MigrationSTFManagement.getInstance().init(fileService, config);
         MigrationSTFManagement.getInstance().migrate();
-        new MigrationChecker().start();
     }
 }

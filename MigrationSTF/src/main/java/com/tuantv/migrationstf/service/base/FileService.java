@@ -15,5 +15,7 @@ public interface FileService {
     
     void updateUploadTimeByFileId(int skip, int take);
     
+    void updateUploadTimeByFileId();
+    
     void createFileData(int number, int documentNumberPerAnInsert);
 }

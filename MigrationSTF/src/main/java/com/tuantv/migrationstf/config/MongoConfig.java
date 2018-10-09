@@ -39,6 +39,12 @@ public class MongoConfig {
     
     @Value("${application.database.mongo.connectionsPerHost}")
     private int connectionsPerHost;
+    
+    @Value("${application.database.mongo.bulkWriteNumber}")
+    private int bulkWriteNumber;
+    
+    @Value("${application.database.mongo.bulkWriteTimeout}")
+    private int bulkWriteTimeout;
 
     @Bean
     public MongoClient getMongoClient() {

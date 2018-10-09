@@ -5,20 +5,22 @@
  */
 package com.tuantv.migrationstf.repository.implement;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.UpdateManyModel;
+import com.mongodb.client.model.WriteModel;
+import com.tuantv.migrationstf.config.MongoConfig;
 import com.tuantv.migrationstf.domain.FileInfo;
 import org.springframework.stereotype.Repository;
 import com.tuantv.migrationstf.repository.base.BaseRepository;
 import com.tuantv.migrationstf.repository.base.FileRepository;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
 /**
@@ -36,10 +38,11 @@ public class FileRepositoryImpl extends BaseRepository<FileInfo> implements File
     private static final String UPLOAD_TIME = "upload_time";
     
     private final MongoClient mongoClient;
+    private final MongoConfig config;
     
     @Override
-    protected DB getDB() {
-        return mongoClient.getDB(DATABASE_NAME);
+    protected MongoDatabase getDB() {
+        return mongoClient.getDatabase(DATABASE_NAME);
     }
 
     @Override
@@ -48,7 +51,7 @@ public class FileRepositoryImpl extends BaseRepository<FileInfo> implements File
     }
 
     @Override
-    protected FileInfo castToDomain(DBObject dbObject) {
+    protected FileInfo castToDomain(Document dbObject) {
         if (dbObject == null) {
             return null;
         }
@@ -68,37 +71,38 @@ public class FileRepositoryImpl extends BaseRepository<FileInfo> implements File
     }
 
     @Override
-    protected DBObject castToDBObject(FileInfo domain) {
-        BasicDBObject dBObject = new BasicDBObject();
+    protected Document castToDBObject(FileInfo domain) {
+        Document document = new Document();
         
         if (domain.getId() != null) {
-            dBObject.append(ID, new ObjectId(domain.getId()));
+            document.append(ID, new ObjectId(domain.getId()));
         }
         
-        put(dBObject, URL, domain.getUrl());
-        put(dBObject, UPLOAD_TIME, domain.getUploadTime());
+        put(document, URL, domain.getUrl());
+        put(document, UPLOAD_TIME, domain.getUploadTime());
         
-        return dBObject;
+        return document;
     }
 
     @Override
     public void insertMany(List<FileInfo> fileInfos) {
-        List<DBObject> dbList = fileInfos.parallelStream().map(fileInfo -> {
-            return castToDBObject(fileInfo);
-        }).collect(Collectors.toList());
+        fileInfos.parallelStream().forEach(fileInfo -> {
+            WriteModel insertModel = new InsertOneModel(castToDBObject(fileInfo));
+            putToBulkWrites(insertModel);
+        });
         
-        getCollection().insert(dbList);
     }
 
     @Override
     public List<FileInfo> getFiles(int skip, int take) {
-        BasicDBObject sortById = new BasicDBObject(ID, 1);
+        Document sortById = new Document(ID, 1);
         
         List<FileInfo> result = new ArrayList<>();
-        try (DBCursor cursor = getCollection().find().sort(sortById).skip(skip).limit(take)) {
+        FindIterable iterable = getCollection().find().sort(sortById).skip(skip).limit(take);
+        try (MongoCursor cursor = iterable.iterator()) {
             while(cursor.hasNext()) {
-                BasicDBObject dBObject = (BasicDBObject) cursor.next();
-                FileInfo fileInfo = castToDomain(dBObject);
+                Document document = (Document) cursor.next();
+                FileInfo fileInfo = castToDomain(document);
                 result.add(fileInfo);
             }
         }
@@ -114,11 +118,21 @@ public class FileRepositoryImpl extends BaseRepository<FileInfo> implements File
     @Override
     public void updateUploadTime(String fileId, long uploadTime) {
         ObjectId id = new ObjectId(fileId);
-        BasicDBObject query = new BasicDBObject(ID, id);
+        Document query = new Document(ID, id);
         
-        BasicDBObject update = new BasicDBObject("$set", new BasicDBObject(UPLOAD_TIME, uploadTime));
-        
-        getCollection().update(query, update);
+        Document update = new Document("$set", new Document(UPLOAD_TIME, uploadTime));
+        WriteModel updateModel = new UpdateManyModel(query, update);
+        putToBulkWrites(updateModel);;
+    }
+
+    @Override
+    protected int getBulkWriteNumber() {
+        return config.getBulkWriteNumber();
+    }
+
+    @Override
+    protected int getBulkWriteTimeout() {
+        return config.getBulkWriteTimeout();
     }
     
 }
