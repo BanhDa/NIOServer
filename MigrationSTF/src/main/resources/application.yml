@@ -9,12 +9,12 @@ application:
             userName:
             password:
             connectionsPerHost: 10
-            bulkWriteNumber: 10
+            bulkWriteNumber: 1000
             bulkWriteTimeout: 10
             
     migrateSTF:
-        maxMigrationSTFThread: 1
-        migratedFileNumberPerThread: 1000000
+        maxMigrationSTFThread: 10
+        migratedFileNumberPerThread: 10000
         
-    createFileDataNumber: 100
-    documentNumberPerAnInsert: 10
+    createFileDataNumber: 1000000
+    documentNumberPerAnInsert: 100

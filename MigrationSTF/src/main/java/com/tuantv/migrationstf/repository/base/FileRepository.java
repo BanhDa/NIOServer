@@ -21,4 +21,6 @@ public interface FileRepository {
     long getFileNumber();
     
     void updateUploadTime(String fileId, long uploadTime);
+    
+    void showWorker();
 }

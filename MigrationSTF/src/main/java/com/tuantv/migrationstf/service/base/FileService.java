@@ -18,4 +18,6 @@ public interface FileService {
     void updateUploadTimeByFileId();
     
     void createFileData(int number, int documentNumberPerAnInsert);
+    
+    void showFileBulkWorker();
 }

@@ -15,7 +15,7 @@ import com.mongodb.client.model.WriteModel;
 import com.tuantv.migrationstf.config.MongoConfig;
 import com.tuantv.migrationstf.domain.FileInfo;
 import org.springframework.stereotype.Repository;
-import com.tuantv.migrationstf.repository.base.BaseRepository;
+import com.tuantv.migrationstf.repository.base.BulkWritesRepository;
 import com.tuantv.migrationstf.repository.base.FileRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ import org.bson.types.ObjectId;
  */
 @Repository
 @AllArgsConstructor
-public class FileRepositoryImpl extends BaseRepository<FileInfo> implements FileRepository {
+public class FileRepositoryImpl extends BulkWritesRepository<FileInfo> implements FileRepository {
 
     private static final String DATABASE_NAME = "staticfiledb";
     private static final String COLLECTION_NAME = "dbtest";
@@ -134,5 +134,10 @@ public class FileRepositoryImpl extends BaseRepository<FileInfo> implements File
     protected int getBulkWriteTimeout() {
         return config.getBulkWriteTimeout();
     }
-    
+
+    @Override
+    public void showWorker() {
+        getBulkWritesWorker();
+    }
+
 }

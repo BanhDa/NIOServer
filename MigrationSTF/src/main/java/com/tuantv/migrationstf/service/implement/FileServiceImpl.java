@@ -88,5 +88,10 @@ public class FileServiceImpl implements FileService{
     public void updateUploadTimeByFileId() {
 //        fileRepository.getFileNumber()
     }
+
+    @Override
+    public void showFileBulkWorker() {
+        fileRepository.showWorker();
+    }
     
 }

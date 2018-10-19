@@ -26,9 +26,6 @@ public abstract class BaseRepository<T extends Domain>{
     
     protected static final String ID = "_id";
     
-    private LinkedBlockingQueue<WriteModel> CONTAINER = new LinkedBlockingQueue<>();
-    private BulkWritesWorker bulkWritesWorker;
-    
     protected MongoCollection getCollection() {
         return getDB().getCollection(getCollectionName());
     }
@@ -36,14 +33,6 @@ public abstract class BaseRepository<T extends Domain>{
     protected void put(Document document, String key, Object value) {
         if (value != null) {
             document.append(key, value);
-        }
-    }
-    
-    protected void putToBulkWrites(WriteModel writeModel) {
-        CONTAINER.add(writeModel);
-        if (bulkWritesWorker == null) {
-            bulkWritesWorker = new BulkWritesWorker(getBulkWriteNumber(), getBulkWriteTimeout());
-            bulkWritesWorker.start();
         }
     }
     
@@ -59,48 +48,4 @@ public abstract class BaseRepository<T extends Domain>{
     
     protected abstract int getBulkWriteTimeout();
     
-    
-    private class BulkWritesWorker extends Thread {
-
-        private static final long FIVE_SECONDS = 5000;
-        
-        private final int bulkWritesNumber;
-        private final int bulkWriteTimeout;
-        
-        public BulkWritesWorker(int bulkWritesNumber, int bulkWriteTimeout) {
-            this.bulkWritesNumber = bulkWritesNumber;
-            this.bulkWriteTimeout = bulkWriteTimeout;
-        }
-        
-        @Override
-        public void run() {
-            List<WriteModel> writes = new ArrayList<>();
-                long startTime = System.currentTimeMillis();
-                long sleepTime = 0;
-                while (true) {
-                    try {
-                        WriteModel writeModel = CONTAINER.poll();
-                        if (writeModel == null) {
-                            if (sleepTime == FIVE_SECONDS) {
-                                Thread.interrupted();
-                            }
-                            sleepTime += 5;
-                            sleep(5);
-                        }
-                        writes.add(writeModel);
-                        long duration = System.currentTimeMillis() - startTime;
-                        if (writes.size() == bulkWritesNumber || duration == bulkWriteTimeout) {
-                            getCollection().bulkWrite(writes);
-                            
-                            startTime = System.currentTimeMillis();
-                            writes.clear();
-                        }
-                        
-                    } catch (Exception exception) {
-                        log.error("", exception);
-                    }
-                }
-        }
-        
-    }
 }

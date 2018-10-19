@@ -90,6 +90,7 @@ public class MigrationSTFManagement {
         if (MIGRATED_FILE_COUNTER == FILE_NUMBER) {
             System.out.println("DONE");
             System.out.println("TIME PROCESSS: " + (System.currentTimeMillis() - START_TIME));
+            fileService.showFileBulkWorker();
             return true;
         }
         

@@ -35,7 +35,6 @@ public class MigrationWorker extends Thread{
 //        System.out.println("migration skip " + skip + " to " + to + " completed: " + (System.currentTimeMillis() - startTime));
     
         fileService.updateUploadTimeByFileId(skip, take);
-
         MigrationSTFManagement.getInstance().completeWorker(this);
     }
     
